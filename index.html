@@ -6,6 +6,11 @@
 
 <body>
 
+  <h2>Payment System</h2>
+
+  <!-- ✅ ADD THIS INPUT -->
+  <input id="amount" type="number" value="10" placeholder="Enter amount" />
+
   <button onclick="pay()">Generate QR</button>
 
   <p id="status"></p>
@@ -13,7 +18,9 @@
 
   <script>
     function pay() {
-      alert("PAY FUNCTION WORKS");
+      const amount = document.getElementById("amount").value;
+
+      alert("Amount entered: " + amount);
     }
   </script>
 
