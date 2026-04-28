@@ -1,54 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>KessPay Demo</title>
+<h2>Create Payment</h2>
 
-  <!-- QR Code library -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-</head>
+<input id="amount" type="number" placeholder="Enter amount" value="10" />
 
-<body>
-  <h1>Payment Demo</h1>
+<button onclick="pay()">Generate QR</button>
 
-  <button onclick="pay()">Create Payment ($10)</button>
-
-  <p id="status"></p>
-  <div id="qrcode"></div>
-
-  <script>
-    async function pay() {
-      const status = document.getElementById("status");
-      const qr = document.getElementById("qrcode");
-
-      status.innerText = "Creating payment...";
-      qr.innerHTML = "";
-
-      const res = await fetch("/api/create-payment");
-      const data = await res.json();
-
-      if (data.success) {
-        const link = data.data.payment_link;
-
-        status.innerHTML = "Scan QR or click link below:";
-
-        // Generate QR code
-        new QRCode(qr, {
-          text: link,
-          width: 200,
-          height: 200
-        });
-
-        // Clickable link
-        status.innerHTML += `
-          <br><br>
-          <a href="${link}" target="_blank">
-            Open Payment Page
-          </a>
-        `;
-      } else {
-        status.innerText = JSON.stringify(data, null, 2);
-      }
-    }
-  </script>
-</body>
-</html>
+<p id="status"></p>
+<div id="qrcode"></div>
