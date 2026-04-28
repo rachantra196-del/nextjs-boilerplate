@@ -1,3 +1,9 @@
+<button onclick="pay()">Generate QR</button>
+
+<p id="status"></p>
+<div id="qrcode"></div>
+
+<script>
 async function pay() {
   const amount = document.getElementById("amount").value;
   const status = document.getElementById("status");
@@ -15,7 +21,6 @@ async function pay() {
   });
 
   const data = await res.json();
-  console.log(data);
 
   const link =
     data?.data?.payment_link ||
@@ -26,7 +31,7 @@ async function pay() {
     return;
   }
 
-  status.innerText = "Scan QR to pay";
+  status.innerText = "QR generating...";
 
   new QRCode(qr, {
     text: link,
@@ -34,3 +39,4 @@ async function pay() {
     height: 200
   });
 }
+</script>
