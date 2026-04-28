@@ -3,6 +3,8 @@ async function pay() {
 
   const amount = document.getElementById("amount").value;
 
+  console.log("AMOUNT ENTERED:", amount);
+
   const res = await fetch("/api/create-payment", {
     method: "POST",
     headers: {
