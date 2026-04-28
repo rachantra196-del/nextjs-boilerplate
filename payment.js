@@ -1,42 +1,63 @@
-<button onclick="pay()">Generate QR</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Demo</title>
 
-<p id="status"></p>
-<div id="qrcode"></div>
+  <!-- QR library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
 
-<script>
-async function pay() {
-  const amount = document.getElementById("amount").value;
-  const status = document.getElementById("status");
-  const qr = document.getElementById("qrcode");
+<body>
 
-  status.innerText = "Creating payment...";
-  qr.innerHTML = "";
+  <h2>Payment System</h2>
 
-  const res = await fetch("/api/create-payment", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ amount })
-  });
+  <input id="amount" type="number" placeholder="Enter amount" value="10" />
 
-  const data = await res.json();
+  <button onclick="pay()">Generate QR</button>
 
-  const link =
-    data?.data?.payment_link ||
-    data?.payment_link;
+  <p id="status"></p>
+  <div id="qrcode"></div>
 
-  if (!link) {
-    status.innerText = "No payment link returned";
-    return;
-  }
+  <script>
+    async function pay() {
+      console.log("PAY FUNCTION CALLED");
 
-  status.innerText = "QR generating...";
+      const amount = document.getElementById("amount").value;
+      const status = document.getElementById("status");
+      const qr = document.getElementById("qrcode");
 
-  new QRCode(qr, {
-    text: link,
-    width: 200,
-    height: 200
-  });
-}
-</script>
+      status.innerText = "Creating payment...";
+      qr.innerHTML = "";
+
+      const res = await fetch("/api/create-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await res.json();
+      console.log("API RESPONSE:", data);
+
+      const link =
+        data?.data?.payment_link ||
+        data?.payment_link;
+
+      if (!link) {
+        status.innerText = "No payment link returned";
+        return;
+      }
+
+      status.innerText = "QR generating...";
+
+      new QRCode(qr, {
+        text: link,
+        width: 200,
+        height: 200
+      });
+    }
+  </script>
+
+</body>
+</html>
