@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Hello</h1>
+  <button onclick="test()">Test API</button>
+
+  <script>
+    async function test() {
+      const res = await fetch('/api/create-payment');
+      const data = await res.json();
+      alert(JSON.stringify(data));
+    }
+  </script>
+</body>
+</html>
