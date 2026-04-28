@@ -1,23 +1,18 @@
-async function pay() {
-  const amount = document.getElementById("amount").value;
-  const status = document.getElementById("status");
-  const qr = document.getElementById("qrcode");
+const link = data?.data?.payment_link;
 
-  status.innerText = "Calling API...";
-  qr.innerHTML = "";
+console.log("LINK:", link);
 
-  const res = await fetch("/api/create-payment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount })
-  });
-
-  const data = await res.json();
-
-  // 🔥 FORCE SHOW EVERYTHING
-  console.log("RAW API RESPONSE:", data);
-
-  alert(JSON.stringify(data, null, 2));
-
-  status.innerText = "Check popup for API response";
+if (!link) {
+  status.innerText = "No payment link from API";
+  return;
 }
+
+status.innerText = "QR generating...";
+
+document.getElementById("qrcode").innerHTML = "";
+
+new QRCode(document.getElementById("qrcode"), {
+  text: link,
+  width: 200,
+  height: 200
+});
