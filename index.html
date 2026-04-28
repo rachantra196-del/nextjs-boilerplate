@@ -1,26 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Payment</title>
+  <title>QR Test</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    #qrcode {
+      width: 220px;
+      height: 220px;
+      border: 2px solid red;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <h2>Payment System</h2>
+  <button onclick="testQR()">Generate QR</button>
 
-  <!-- ✅ ADD THIS INPUT -->
-  <input id="amount" type="number" value="10" placeholder="Enter amount" />
-
-  <button onclick="pay()">Generate QR</button>
-
-  <p id="status"></p>
   <div id="qrcode"></div>
 
   <script>
-    function pay() {
-      const amount = document.getElementById("amount").value;
+    function testQR() {
+      const el = document.getElementById("qrcode");
 
-      alert("Amount entered: " + amount);
+      el.innerHTML = "";
+
+      new QRCode(el, {
+        text: "https://google.com",
+        width: 200,
+        height: 200
+      });
+
+      console.log("QR generated");
     }
   </script>
 
