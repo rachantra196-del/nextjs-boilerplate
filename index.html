@@ -1,39 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>QR Test</title>
+  <title>Payment System</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <style>
-    #qrcode {
-      width: 220px;
-      height: 220px;
-      border: 2px solid red;
-      margin-top: 20px;
-    }
-  </style>
 </head>
 
 <body>
 
-  <button onclick="testQR()">Generate QR</button>
+  <h2>Create Payment</h2>
 
+  <!-- ✅ INPUT MUST BE HERE -->
+  <input id="amount" type="number" value="10" placeholder="Enter amount" />
+
+  <button onclick="pay()">Generate QR</button>
+
+  <p id="status"></p>
   <div id="qrcode"></div>
 
   <script>
-    function testQR() {
-      const el = document.getElementById("qrcode");
+    async function pay() {
+      const amount = document.getElementById("amount").value;
 
-      el.innerHTML = "";
+      const status = document.getElementById("status");
+      const qr = document.getElementById("qrcode");
 
-      new QRCode(el, {
-        text: "https://google.com",
+      console.log("AMOUNT:", amount);
+
+      status.innerText = "Creating payment...";
+      qr.innerHTML = "";
+
+      const res = await fetch("/api/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await res.json();
+
+      const link =
+        data?.data?.payment_link ||
+        data?.payment_link;
+
+      if (!link) {
+        status.innerText = "No payment link";
+        return;
+      }
+
+      status.innerText = "QR generated ✔";
+
+      new QRCode(qr, {
+        text: link,
         width: 200,
         height: 200
       });
-
-      console.log("QR generated");
     }
   </script>
 
