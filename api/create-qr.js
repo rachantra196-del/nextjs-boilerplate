@@ -10,5 +10,9 @@ const tokenRes = await fetch(`${process.env.BASE_URL}/token`, {
   })
 });
 
-const tokenText = await tokenRes.text();
-console.log("TOKEN RESPONSE:", tokenText);
+const text = await tokenRes.text();
+console.log("TOKEN RAW RESPONSE:", text);
+
+if (!tokenRes.ok) {
+  throw new Error("Token API failed");
+}
