@@ -1,3 +1,4 @@
+import axios from "axios";
 import crypto from "crypto";
 
 function sign(params, secret) {
@@ -10,25 +11,22 @@ function sign(params, secret) {
 }
 
 async function getToken() {
-  const res = await fetch(process.env.TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "password",
-      client_id: process.env.CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
-      username: process.env.USERNAME,
-      password: process.env.PASSWORD,
-    }),
+  const res = await axios.post(process.env.TOKEN_URL, {
+    grant_type: "password",
+    client_id: process.env.CLIENT_ID,
+    client_secret: process.env.CLIENT_SECRET,
+    username: process.env.USERNAME,
+    password: process.env.PASSWORD,
   });
 
-  const data = await res.json();
-  return data.access_token;
+  return res.data.access_token;
 }
 
-export async function POST(req) {
+export default async function handler(req, res) {
   try {
-    const body = await req.json();
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
 
     const token = await getToken();
     const orderId = Date.now().toString();
@@ -39,7 +37,7 @@ export async function POST(req) {
       seller_code: process.env.SELLER_CODE,
       out_trade_no: orderId,
       body: "Testing Payment",
-      total_amount: body.amount,
+      total_amount: req.body.amount,
       currency: "USD",
       notify_url: process.env.NOTIFY_URL,
       service_code: "ABAAKHPP",
@@ -47,26 +45,29 @@ export async function POST(req) {
 
     payload.sign = sign(payload, process.env.SECRET_KEY);
 
-    const response = await fetch(process.env.GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    return Response.json({
-      orderId,
-      qr: data.code_url || data.qr_code || data.qr,
-    });
-  } catch (err) {
-    console.error(err);
-    return Response.json(
-      { error: err.message },
-      { status: 500 }
+    const response = await axios.post(
+      process.env.GATEWAY_URL,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
+
+    return res.status(200).json({
+      orderId,
+      qr:
+        response.data.code_url ||
+        response.data.qr_code ||
+        response.data.qr,
+    });
+
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+
+    return res.status(500).json({
+      error: err.response?.data || err.message,
+    });
   }
 }
