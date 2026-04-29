@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import crypto from "crypto";
 
@@ -25,7 +24,7 @@ async function getToken() {
 
 export default async function handler(req, res) {
   try {
-    const TOKEN = await getToken();
+    const token = await getToken();
 
     const payload = {
       service: "webpay.acquire.queryOrder",
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${TOKEN}`
+          Authorization: `Bearer ${token}`
         }
       }
     );
@@ -50,6 +49,8 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
+    console.error("CHECK ERROR:", err.response?.data || err.message);
+
     res.status(500).json({
       error: err.response?.data || err.message
     });
