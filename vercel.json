@@ -1,9 +1,0 @@
-{
-  "framework": null,
-  "routes": [
-    { "src": "/api/create", "dest": "/api/create.js" },
-    { "src": "/api/check", "dest": "/api/check.js" },
-    { "src": "/api/notify", "dest": "/api/notify.js" },
-    { "src": "/", "dest": "/index.html" }
-  ]
-}
