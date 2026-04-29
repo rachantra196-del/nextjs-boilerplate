@@ -1,14 +1,28 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>HFCB Payment Gateway</title>
-</head>
 <body style="text-align:center;">
 
-<h1>HFCB Payment Gateway Through KESS</h1>
+<h1>HFCB Payment Gateway</h1>
 
-<h2><a href="paymentlink.php">1. Payment Link</a></h2>
-<h2><a href="nativeqr.php">2. NativeQR</a></h2>
+<button onclick="createQR()">Generate QR Payment</button>
+
+<div id="result"></div>
+
+<script>
+async function createQR() {
+    const res = await fetch('/api/nativeqr');
+    const data = await res.json();
+
+    if (data.qr) {
+        document.getElementById('result').innerHTML =
+            `<h3>Scan to Pay</h3><img src="${data.qr}" />`;
+    } else if (data.link) {
+        window.location.href = data.link;
+    } else {
+        document.getElementById('result').innerHTML = "Error creating payment";
+    }
+}
+</script>
 
 </body>
 </html>
