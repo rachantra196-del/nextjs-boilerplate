@@ -1,10 +1,8 @@
 import axios from "axios";
 import crypto from "crypto";
 
-let TOKEN = null;
-
 async function getToken() {
-  const res = await axios.post("https://api-url/token", {
+  const res = await axios.post(process.env.TOKEN_URL, {
     grant_type: "password",
     client_id: process.env.CLIENT_ID,
     client_secret: process.env.CLIENT_SECRET,
@@ -15,7 +13,7 @@ async function getToken() {
   return res.data.access_token;
 }
 
-function sign(params, secret = process.env.SECRET_KEY) {
+function sign(params, secret) {
   const sorted = Object.keys(params)
     .sort()
     .map(k => `${k}=${params[k]}`)
@@ -26,7 +24,7 @@ function sign(params, secret = process.env.SECRET_KEY) {
 
 export default async function handler(req, res) {
   try {
-    if (!TOKEN) TOKEN = await getToken();
+    const TOKEN = await getToken();
 
     const orderId = Date.now().toString();
 
@@ -38,14 +36,14 @@ export default async function handler(req, res) {
       body: "Testing Payment",
       total_amount: req.body.amount,
       currency: "USD",
-      notify_url: "https://yourdomain.vercel.app/api/notify",
+      notify_url: process.env.NOTIFY_URL,
       service_code: "ABAAKHPP"
     };
 
-    payload.sign = sign(payload);
+    payload.sign = sign(payload, process.env.SECRET_KEY);
 
     const response = await axios.post(
-      "https://api-url/gateway",
+      process.env.GATEWAY_URL,
       payload,
       {
         headers: {
@@ -62,7 +60,10 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ error: "QR generation failed" });
+    console.error("ERROR:", err.response?.data || err.message);
+
+    res.status(500).json({
+      error: err.response?.data || err.message
+    });
   }
 }
