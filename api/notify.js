@@ -1,5 +1,0 @@
-export default async function handler(req, res) {
-  console.log("NOTIFY:", req.body);
-
-  res.json({ success: true });
-}
