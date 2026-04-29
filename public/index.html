@@ -3,6 +3,7 @@
 <head>
   <title>QR Payment</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <link rel="icon" href="data:,">
 </head>
 <body>
 
@@ -35,14 +36,19 @@ async function generateQR() {
     body: JSON.stringify({ amount })
   });
 
-  const data = await res.json();
+  const text = await res.text();
 
-  const qr =
-    data.qr ||
-    data.code_url ||
-    data.qr_code;
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    console.error("RAW:", text);
+    document.getElementById("status").innerText = "❌ Server error";
+    return;
+  }
 
-  orderId = data.orderId || data.out_trade_no;
+  const qr = data.qr;
+  orderId = data.orderId;
 
   if (!qr) {
     document.getElementById("status").innerText = "❌ QR missing";
