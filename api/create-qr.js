@@ -1,23 +1,16 @@
-const result = await qrRes.json();
+export default async function handler(req, res) {
+  try {
+    // 🔥 parse body safely
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
 
-// try all possible fields
-const qr =
-  result.code_url ||
-  result.qr_code ||
-  result.data?.qr_code ||
-  result.data?.code_url ||
-  result.result?.code_url;
+    const amount = body?.amount;
 
-const deeplink =
-  result.deeplink ||
-  result.pay_url ||
-  result.payment_url ||
-  result.data?.deeplink ||
-  result.data?.pay_url;
+    console.log("AMOUNT RECEIVED:", amount);
 
-res.status(200).json({
-  out_trade_no: orderId,
-  qr: qr,
-  deeplink: deeplink,
-  raw: result
-});
+    if (!amount) {
+      return res.status(400).json({ error: "Amount is required" });
+    }
+
+    // continue your logic...
