@@ -37,25 +37,24 @@ async function generateQR() {
   });
 
   const text = await res.text();
+  console.log("RAW:", text);
 
   let data;
   try {
     data = JSON.parse(text);
   } catch (e) {
-    console.error("RAW:", text);
     document.getElementById("status").innerText = "❌ Server error";
     return;
   }
 
-  const qr = data.qr;
-  orderId = data.orderId;
-
-  if (!qr) {
+  if (!data.qr) {
     document.getElementById("status").innerText = "❌ QR missing";
     return;
   }
 
-  QRCode.toCanvas(document.getElementById("qr"), qr);
+  orderId = data.orderId;
+
+  QRCode.toCanvas(document.getElementById("qr"), data.qr);
 
   document.getElementById("status").innerText = "Waiting payment...";
 
