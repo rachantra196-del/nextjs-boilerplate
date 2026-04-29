@@ -1,6 +1,15 @@
 import axios from "axios";
 import crypto from "crypto";
 
+function sign(params, secret) {
+  const sorted = Object.keys(params)
+    .sort()
+    .map(k => `${k}=${params[k]}`)
+    .join("&");
+
+  return crypto.createHash("md5").update(sorted + secret).digest("hex");
+}
+
 async function getToken() {
   const res = await axios.post(process.env.TOKEN_URL, {
     grant_type: "password",
@@ -13,18 +22,15 @@ async function getToken() {
   return res.data.access_token;
 }
 
-function sign(params, secret) {
-  const sorted = Object.keys(params)
-    .sort()
-    .map(k => `${k}=${params[k]}`)
-    .join("&");
-
-  return crypto.createHash("md5").update(sorted + secret).digest("hex");
-}
-
 export default async function handler(req, res) {
   try {
-    const TOKEN = await getToken();
+    // 🔍 Debug (IMPORTANT)
+    console.log("ENV:", {
+      TOKEN_URL: process.env.TOKEN_URL,
+      GATEWAY_URL: process.env.GATEWAY_URL
+    });
+
+    const token = await getToken();
 
     const orderId = Date.now().toString();
 
@@ -42,21 +48,26 @@ export default async function handler(req, res) {
 
     payload.sign = sign(payload, process.env.SECRET_KEY);
 
+    console.log("PAYLOAD:", payload);
+
     const response = await axios.post(
       process.env.GATEWAY_URL,
       payload,
       {
         headers: {
-          Authorization: `Bearer ${TOKEN}`
+          Authorization: `Bearer ${token}`
         }
       }
     );
 
-    const data = response.data;
+    console.log("API RESPONSE:", response.data);
 
     res.status(200).json({
       orderId,
-      qr: data.code_url || data.qr_code || data.qr
+      qr:
+        response.data.code_url ||
+        response.data.qr_code ||
+        response.data.qr
     });
 
   } catch (err) {
