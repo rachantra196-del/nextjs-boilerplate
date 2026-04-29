@@ -1,4 +1,3 @@
-import axios from "axios";
 import crypto from "crypto";
 
 function sign(params, secret) {
@@ -11,27 +10,27 @@ function sign(params, secret) {
 }
 
 async function getToken() {
-  const res = await axios.post(process.env.TOKEN_URL, {
-    grant_type: "password",
-    client_id: process.env.CLIENT_ID,
-    client_secret: process.env.CLIENT_SECRET,
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
+  const res = await fetch(process.env.TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grant_type: "password",
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+      username: process.env.USERNAME,
+      password: process.env.PASSWORD,
+    }),
   });
 
-  return res.data.access_token;
+  const data = await res.json();
+  return data.access_token;
 }
 
-// ✅ THIS is required for App Router
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    console.log("API HIT ✔️");
-    console.log("BODY:", body);
-
     const token = await getToken();
-
     const orderId = Date.now().toString();
 
     const payload = {
@@ -48,33 +47,25 @@ export async function POST(req) {
 
     payload.sign = sign(payload, process.env.SECRET_KEY);
 
-    console.log("PAYLOAD:", payload);
+    const response = await fetch(process.env.GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-    const response = await axios.post(
-      process.env.GATEWAY_URL,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log("GATEWAY RESPONSE:", response.data);
+    const data = await response.json();
 
     return Response.json({
       orderId,
-      qr:
-        response.data.code_url ||
-        response.data.qr_code ||
-        response.data.qr,
+      qr: data.code_url || data.qr_code || data.qr,
     });
-
   } catch (err) {
-    console.error("API ERROR:", err.response?.data || err.message);
-
+    console.error(err);
     return Response.json(
-      { error: err.response?.data || err.message },
+      { error: err.message },
       { status: 500 }
     );
   }
