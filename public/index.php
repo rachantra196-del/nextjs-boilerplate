@@ -1,18 +1,14 @@
-<?php
-$amount = 10.00;
-$ref = "HFCB" . time();
-$qrData = "PAYMENT|REF:$ref|AMOUNT:$amount";
-?>
-
 <!DOCTYPE html>
 <html>
+<head>
+  <title>HFCB Payment Gateway</title>
+</head>
 <body style="text-align:center;">
 
-<h1>Scan to Pay</h1>
-<p>Ref: <?php echo $ref; ?></p>
-<p>Amount: $<?php echo $amount; ?></p>
+<h1>HFCB Payment Gateway Through KESS</h1>
 
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?php echo urlencode($qrData); ?>">
+<h2><a href="paymentlink.php">1. Payment Link</a></h2>
+<h2><a href="nativeqr.php">2. NativeQR</a></h2>
 
 </body>
 </html>
