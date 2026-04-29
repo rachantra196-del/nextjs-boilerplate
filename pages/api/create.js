@@ -4,7 +4,7 @@ import crypto from "crypto";
 function sign(params, secret) {
   const sorted = Object.keys(params)
     .sort()
-    .map(k => `${k}=${params[k]}`)
+    .map((k) => `${k}=${params[k]}`)
     .join("&");
 
   return crypto.createHash("md5").update(sorted + secret).digest("hex");
@@ -16,16 +16,18 @@ async function getToken() {
     client_id: process.env.CLIENT_ID,
     client_secret: process.env.CLIENT_SECRET,
     username: process.env.USERNAME,
-    password: process.env.PASSWORD
+    password: process.env.PASSWORD,
   });
 
   return res.data.access_token;
 }
 
-export async function POST(req) {
-  try {
-    const body = await req.json();
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "POST only" });
+  }
 
+  try {
     const token = await getToken();
     const orderId = Date.now().toString();
 
@@ -35,10 +37,10 @@ export async function POST(req) {
       seller_code: process.env.SELLER_CODE,
       out_trade_no: orderId,
       body: "Testing Payment",
-      total_amount: body.amount,
+      total_amount: req.body.amount,
       currency: "USD",
       notify_url: process.env.NOTIFY_URL,
-      service_code: "ABAAKHPP"
+      service_code: "ABAAKHPP",
     };
 
     payload.sign = sign(payload, process.env.SECRET_KEY);
@@ -48,25 +50,24 @@ export async function POST(req) {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
-    return Response.json({
+    return res.status(200).json({
       orderId,
       qr:
         response.data.code_url ||
         response.data.qr_code ||
-        response.data.qr
+        response.data.qr,
     });
 
   } catch (err) {
     console.error(err.response?.data || err.message);
 
-    return Response.json(
-      { error: err.response?.data || err.message },
-      { status: 500 }
-    );
+    return res.status(500).json({
+      error: err.response?.data || err.message,
+    });
   }
 }
