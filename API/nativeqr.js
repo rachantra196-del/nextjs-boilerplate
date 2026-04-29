@@ -1,32 +1,23 @@
 export default async function handler(req, res) {
     try {
-        const apiUrl = "https://api.example.com/create-payment";
-
-        const payload = {
-            amount: 10.00,
-            currency: "USD",
-            reference: "REF" + Date.now(),
-            callback_url: "https://yourdomain.vercel.app/api/callback"
-        };
-
-        const response = await fetch(apiUrl, {
+        const response = await fetch("https://api.example.com/create-payment", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer YOUR_API_KEY"
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                amount: 10,
+                reference: "REF" + Date.now()
+            })
         });
 
-        const result = await response.json();
+        const text = await response.text(); // 👈 raw response
+        console.log("API RESPONSE:", text);
 
-        // Adjust based on real API response
-        res.status(200).json({
-            qr: result.qr_code || null,
-            link: result.payment_url || null
-        });
+        res.status(200).json({ debug: text });
 
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 }
