@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Payment</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+
+<h2>QR Payment Demo</h2>
+<button onclick="pay()">Pay $1</button>
+
+<br><br>
+<canvas id="qr"></canvas>
+<p id="status"></p>
+
+<script>
+let orderId = null;
+
+async function pay() {
+  document.getElementById("status").innerText = "Generating QR...";
+
+  const res = await fetch("/api/create-qr", { method: "POST" });
+  const data = await res.json();
+
+  const qr = data.code_url || data.qr_code;
+  orderId = data.out_trade_no;
+
+  QRCode.toCanvas(document.getElementById("qr"), qr);
+
+  document.getElementById("status").innerText = "Waiting for payment...";
+  checkStatus();
+}
+
+async function checkStatus() {
+  const interval = setInterval(async () => {
+    const res = await fetch(`/api/check?id=${orderId}`);
+    const data = await res.json();
+
+    if (data.trade_status === "SUCCESS") {
+      document.getElementById("status").innerText = "✅ Paid!";
+      clearInterval(interval);
+    }
+  }, 3000);
+}
+</script>
+
+</body>
+</html>
