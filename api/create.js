@@ -22,16 +22,11 @@ async function getToken() {
   return res.data.access_token;
 }
 
-export default async function handler(req, res) {
+export async function POST(req) {
   try {
-    // 🔍 Debug (IMPORTANT)
-    console.log("ENV:", {
-      TOKEN_URL: process.env.TOKEN_URL,
-      GATEWAY_URL: process.env.GATEWAY_URL
-    });
+    const body = await req.json();
 
     const token = await getToken();
-
     const orderId = Date.now().toString();
 
     const payload = {
@@ -40,15 +35,13 @@ export default async function handler(req, res) {
       seller_code: process.env.SELLER_CODE,
       out_trade_no: orderId,
       body: "Testing Payment",
-      total_amount: req.body.amount,
+      total_amount: body.amount,
       currency: "USD",
       notify_url: process.env.NOTIFY_URL,
       service_code: "ABAAKHPP"
     };
 
     payload.sign = sign(payload, process.env.SECRET_KEY);
-
-    console.log("PAYLOAD:", payload);
 
     const response = await axios.post(
       process.env.GATEWAY_URL,
@@ -60,9 +53,7 @@ export default async function handler(req, res) {
       }
     );
 
-    console.log("API RESPONSE:", response.data);
-
-    res.status(200).json({
+    return Response.json({
       orderId,
       qr:
         response.data.code_url ||
@@ -71,10 +62,11 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("ERROR:", err.response?.data || err.message);
+    console.error(err.response?.data || err.message);
 
-    res.status(500).json({
-      error: err.response?.data || err.message
-    });
+    return Response.json(
+      { error: err.response?.data || err.message },
+      { status: 500 }
+    );
   }
 }
