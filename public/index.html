@@ -1,60 +1,59 @@
-<h1>HELLO PAGE WORKING</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Payment</title>
+</head>
+<body>
+
+<h2>QR Payment</h2>
+
+<!-- INPUT (this is what you're missing) -->
+<input id="amount" type="number" placeholder="Enter amount" />
+
+<br><br>
+
+<!-- BUTTON -->
 <button onclick="generateQR()">Generate QR</button>
 
 <br><br>
 
 <canvas id="qr"></canvas>
 
-<br><br>
-
-<button id="payBtn" style="display:none;" onclick="openPay()">
-  💳 Pay Now (Mobile)
-</button>
-
 <p id="status"></p>
 
 <script>
-let orderId = null;
-let deeplink = null;
-
 async function generateQR() {
   const amount = document.getElementById("amount").value;
 
+  console.log("Amount:", amount);
+
+  if (!amount) {
+    alert("Please enter amount");
+    return;
+  }
+
   const res = await fetch("/api/create-qr", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ amount })
   });
 
   const data = await res.json();
 
-  console.log("API:", data);
+  console.log("API RESPONSE:", data);
 
-  const qr = data.qr;
-  deeplink = data.deeplink;
-  orderId = data.out_trade_no;
+  const qr = data.qr || data.code_url || data.qr_code;
 
-  if (!qr && !deeplink) {
-    document.getElementById("status").innerText = "❌ No QR or deeplink";
+  if (!qr) {
+    document.getElementById("status").innerText = "❌ QR missing";
     return;
   }
 
-  // show QR if exists
-  if (qr) {
-    QRCode.toCanvas(document.getElementById("qr"), qr);
-  }
-
-  // show deeplink button if exists
-  if (deeplink) {
-    document.getElementById("payBtn").style.display = "block";
-  }
-
-  document.getElementById("status").innerText = "Waiting for payment...";
-}
-
-function openPay() {
-  if (deeplink) {
-    window.location.href = deeplink;
-  }
+  document.getElementById("status").innerText = "QR generated";
 }
 </script>
+
+</body>
+</html>
