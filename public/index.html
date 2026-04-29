@@ -7,32 +7,63 @@
 <body>
 
 <h2>QR Payment</h2>
-<button onclick="pay()">Pay $1</button>
+
+<input id="amount" type="number" placeholder="Enter amount (USD)" />
+
+<button onclick="generateQR()">Generate QR</button>
 
 <br><br>
+
 <canvas id="qr"></canvas>
 <p id="status"></p>
 
 <script>
 let orderId = null;
 
-async function pay() {
+async function generateQR() {
+  const amount = document.getElementById("amount").value;
+
+  if (!amount || amount <= 0) {
+    alert("Enter valid amount");
+    return;
+  }
+
   document.getElementById("status").innerText = "Generating QR...";
 
-  const res = await fetch("/api/create-qr", { method: "POST" });
+  const res = await fetch("/api/create-qr", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ amount })
+  });
+
   const data = await res.json();
 
+  console.log("API RESPONSE:", data);
+
   const qr = data.code_url || data.qr_code;
-  orderId = data.out_trade_no;
+
+  if (!qr) {
+    document.getElementById("status").innerText = "❌ QR missing";
+    return;
+  }
+
+  orderId = data.out_trade_no || data.order_id;
+
+  if (!orderId) {
+    document.getElementById("status").innerText = "❌ Order ID missing";
+    return;
+  }
 
   QRCode.toCanvas(document.getElementById("qr"), qr);
 
   document.getElementById("status").innerText = "Waiting for payment...";
 
-  checkStatus();
+  checkPayment();
 }
 
-function checkStatus() {
+function checkPayment() {
   const interval = setInterval(async () => {
     const res = await fetch(`/api/check?id=${orderId}`);
     const data = await res.json();
