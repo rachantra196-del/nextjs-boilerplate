@@ -1,5 +1,9 @@
 {
   "framework": null,
-  "buildCommand": "",
-  "outputDirectory": "public"
+  "routes": [
+    { "src": "/api/create-qr", "dest": "/create-qr.js" },
+    { "src": "/api/check", "dest": "/check.js" },
+    { "src": "/api/notify", "dest": "/notify.js" },
+    { "src": "/", "dest": "/index.html" }
+  ]
 }
