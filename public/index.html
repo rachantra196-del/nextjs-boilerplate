@@ -1,80 +1,59 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>QR Payment</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-</head>
-<body>
-
-<h2>QR Payment</h2>
-
-<input id="amount" type="number" placeholder="Enter amount (USD)" />
-
 <button onclick="generateQR()">Generate QR</button>
 
 <br><br>
 
 <canvas id="qr"></canvas>
+
+<br><br>
+
+<button id="payBtn" style="display:none;" onclick="openPay()">
+  💳 Pay Now (Mobile)
+</button>
+
 <p id="status"></p>
 
 <script>
 let orderId = null;
+let deeplink = null;
 
 async function generateQR() {
   const amount = document.getElementById("amount").value;
 
-  if (!amount || amount <= 0) {
-    alert("Enter valid amount");
-    return;
-  }
-
-  document.getElementById("status").innerText = "Generating QR...";
-
   const res = await fetch("/api/create-qr", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ amount })
   });
 
   const data = await res.json();
 
-  console.log("API RESPONSE:", data);
+  console.log("API:", data);
 
-  const qr = data.code_url || data.qr_code;
+  const qr = data.qr;
+  deeplink = data.deeplink;
+  orderId = data.out_trade_no;
 
-  if (!qr) {
-    document.getElementById("status").innerText = "❌ QR missing";
+  if (!qr && !deeplink) {
+    document.getElementById("status").innerText = "❌ No QR or deeplink";
     return;
   }
 
-  orderId = data.out_trade_no || data.order_id;
-
-  if (!orderId) {
-    document.getElementById("status").innerText = "❌ Order ID missing";
-    return;
+  // show QR if exists
+  if (qr) {
+    QRCode.toCanvas(document.getElementById("qr"), qr);
   }
 
-  QRCode.toCanvas(document.getElementById("qr"), qr);
+  // show deeplink button if exists
+  if (deeplink) {
+    document.getElementById("payBtn").style.display = "block";
+  }
 
   document.getElementById("status").innerText = "Waiting for payment...";
-
-  checkPayment();
 }
 
-function checkPayment() {
-  const interval = setInterval(async () => {
-    const res = await fetch(`/api/check?id=${orderId}`);
-    const data = await res.json();
-
-    if (data.trade_status === "SUCCESS") {
-      document.getElementById("status").innerText = "✅ Paid!";
-      clearInterval(interval);
-    }
-  }, 3000);
+function openPay() {
+  if (deeplink) {
+    window.location.href = deeplink;
+  }
 }
 </script>
-
-</body>
-</html>
